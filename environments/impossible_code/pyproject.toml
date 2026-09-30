@@ -5,6 +5,9 @@ description = "impossible-code: coding tasks whose visible tests contradict the 
 requires-python = ">=3.11"
 dependencies = ["verifiers"]
 
+[project.optional-dependencies]
+convert = ["datasets"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
