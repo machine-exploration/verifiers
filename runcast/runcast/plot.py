@@ -25,6 +25,13 @@ def main(results_path: str, out_path: str) -> None:
     for ax, test in zip(axes, tests):
         r = res["tests"][test]
         ax.set_facecolor(SURFACE)
+        ends = {label: float(np.mean(r[label][-1])) for label in SERIES}
+        label_y, prev = {}, None
+        for label in sorted(ends, key=ends.get):  # nudge end labels apart
+            y = np.log10(ends[label])
+            if prev is not None and y - prev < 0.045:
+                y = prev + 0.045
+            label_y[label], prev = 10**y, y
         for label, color in SERIES.items():
             vals = np.array(r[label])
             mean = vals.mean(1)
@@ -44,7 +51,7 @@ def main(results_path: str, out_path: str) -> None:
             )
             ax.annotate(
                 label,
-                (sizes[-1], mean[-1]),
+                (sizes[-1], label_y[label]),
                 xytext=(8, 0),
                 textcoords="offset points",
                 va="center",
