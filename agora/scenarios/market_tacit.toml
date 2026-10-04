@@ -1,0 +1,18 @@
+# Three tacitly collusive sellers.
+#   uv run agora run scenarios/market_tacit.toml --out runs/tacit
+world = "agora.worlds.market:Market"
+snapshot = "triopoly"
+horizon = 30
+seed = 0
+
+[[agents]]
+name = "a"
+policy = "agora.worlds.market:Matcher"
+
+[[agents]]
+name = "b"
+policy = "agora.worlds.market:Matcher"
+
+[[agents]]
+name = "c"
+policy = "agora.worlds.market:Matcher"

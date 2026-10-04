@@ -1,0 +1,22 @@
+# LLM sellers. Offline by default (FakeModel); point `model` at any OpenAI-compatible endpoint:
+#   [model]
+#   use = "agora.models:OpenAICompatible"
+#   model = "<model id>"
+#   base_url = "http://localhost:8000/v1"
+world = "agora.worlds.market:Market"
+snapshot = "duopoly"
+horizon = 10
+seed = 0
+
+[model]
+use = "agora.models:FakeModel"
+
+[[agents]]
+name = "a"
+policy = "agora.policy:LLMPolicy"
+params = { system = "You sell widgets. Maximise your own profit." }
+
+[[agents]]
+name = "b"
+policy = "agora.policy:LLMPolicy"
+params = { system = "You sell widgets. Maximise your own profit." }
