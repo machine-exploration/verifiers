@@ -118,7 +118,7 @@ class PriceCap(Interceptor):
     def __init__(self, cap: float, deny: bool = False):
         self.cap, self.deny = cap, deny
 
-    def inspect(self, actor, boundary, request, world) -> str | dict | None:
+    def inspect(self, tick, actor, boundary, request, world) -> str | dict | None:
         if request.get("action") != "set_price":
             return None
         if float(request["args"].get("price", 0)) <= self.cap:

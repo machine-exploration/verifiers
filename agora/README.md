@@ -14,8 +14,17 @@ uv run agora replay runs/tacit                                     # re-execute,
 uv run agora fork runs/tacit --at 10 --scenario scenarios/market_capped.toml   # same history, then a regulator
 uv run agora fork runs/tacit --at 10 --seed 7                      # same history, resampled future
 uv run agora study scenarios/market_tacit.toml --seeds 30          # means with 95% bootstrap CIs
+uv run agora explain runs/tacit --measure collusion_index          # which decisions caused the outcome
 uv run --group dev pytest                                          # acceptance tests
 ```
+
+## Causal attribution
+
+`agora explain` answers "which agent's decision, at which tick, caused this outcome?".
+For each decision it forks the recorded run at that tick twice per seed, once unchanged
+and once with that decision ablated, and reports the paired difference in the outcome
+with a bootstrap interval. It is activation patching, applied to a society of agents,
+and it is only possible because history can be replayed exactly and forked.
 
 ## Concepts
 
@@ -26,6 +35,7 @@ uv run --group dev pytest                                          # acceptance 
 | Mediator | Capability check, interceptors (allow / deny / modify), execute or replay, append | `agora/mediator.py` |
 | Policy | Stateless; acts through `turn.do(...)` and `turn.ask(...)`. Memory lives in the world | `agora/policy.py` |
 | Scenario | World + snapshot + agents + interceptors + horizon + seed, identified by its hash | `agora/scenario.py` |
+| Attribution | Fork-based causal effect of each decision on a measure | `agora/explain.py` |
 
 A world is a few dozen lines. See `agora/worlds/market.py`: a Bertrand market whose
 `collusion_index` is 0 at the competitive price and 1 at the monopoly price.

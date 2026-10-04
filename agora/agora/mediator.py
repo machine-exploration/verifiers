@@ -39,7 +39,7 @@ class Interceptor:
     deny it, or a replacement request (dict) to modify it."""
 
     def inspect(
-        self, actor: str, boundary: str, request: dict, world: World
+        self, tick: int, actor: str, boundary: str, request: dict, world: World
     ) -> str | dict | None:
         return None
 
@@ -88,7 +88,7 @@ class Mediator:
         if not self.caps[actor].allows(scope):
             self._deny(tick, actor, boundary, request, f"no capability for {scope}")
         for interceptor in self.interceptors:
-            verdict = interceptor.inspect(actor, boundary, request, self.world)
+            verdict = interceptor.inspect(tick, actor, boundary, request, self.world)
             if isinstance(verdict, str):
                 self._deny(tick, actor, boundary, request, verdict)
             if isinstance(verdict, dict):

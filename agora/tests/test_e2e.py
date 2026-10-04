@@ -66,3 +66,25 @@ def test_model_replies_are_replayed_not_resampled():
     before = FakeModel.calls
     replay(log)
     assert FakeModel.calls == before
+
+
+def test_attribution_ablates_exactly_one_decision():
+    from agora.explain import attribute
+
+    log = run(load("market_tacit"))
+    [effect] = attribute(log, "collusion_index", seeds=4, ticks=[6], actors=["a"])
+    assert effect.low <= effect.effect <= effect.high
+    assert effect.decision == next(
+        e.payload
+        for e in log.of_kind("action.request")
+        if (e.tick, e.actor) == (6, "a")
+    )
+    ablated = fork(
+        log,
+        6,
+        load("market_tacit").replace(
+            interceptors=({"use": "agora.explain:Ablate", "actor": "a", "tick": 6},)
+        ),
+    )
+    denied = ablated.of_kind("action.denied")
+    assert [(e.tick, e.actor) for e in denied] == [(6, "a")]

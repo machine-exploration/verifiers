@@ -1,14 +1,15 @@
-"""agora run | replay | fork | study"""
+"""agora run | replay | fork | study | explain"""
 
 from __future__ import annotations
 
 import argparse
 import json
-import random
 import statistics
 
+from agora.explain import attribute
 from agora.log import Log
 from agora.scenario import Scenario, fork, measures, replay, run
+from agora.stats import bootstrap_ci
 
 
 def _report(log: Log, out: str | None) -> None:
@@ -20,14 +21,6 @@ def _report(log: Log, out: str | None) -> None:
             indent=2,
         )
     )
-
-
-def _ci(values: list[float], n: int = 2000) -> tuple[float, float]:
-    rng = random.Random(0)
-    means = sorted(
-        statistics.fmean(rng.choices(values, k=len(values))) for _ in range(n)
-    )
-    return means[int(0.025 * n)], means[int(0.975 * n) - 1]
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -53,6 +46,12 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("scenario")
     s.add_argument("--seeds", type=int, default=20)
 
+    e = sub.add_parser("explain", help="which decisions caused the outcome")
+    e.add_argument("log")
+    e.add_argument("--measure", required=True)
+    e.add_argument("--seeds", type=int, default=8)
+    e.add_argument("--top", type=int, default=10)
+
     args = p.parse_args(argv)
     if args.cmd == "run":
         scenario = Scenario.from_toml(args.scenario)
@@ -71,9 +70,18 @@ def main(argv: list[str] | None = None) -> None:
         runs = [measures(run(scenario.replace(seed=k))) for k in range(args.seeds)]
         for key in runs[0]:
             values = [m[key] for m in runs]
-            lo, hi = _ci(values)
+            lo, hi = bootstrap_ci(values)
             print(
                 f"{key:>16}: {statistics.fmean(values):.3f}  95% CI [{lo:.3f}, {hi:.3f}]  (n={len(values)})"
+            )
+    elif args.cmd == "explain":
+        effects = attribute(Log.load(args.log), args.measure, seeds=args.seeds)
+        print(f"Removing this decision changes {args.measure} by:")
+        for x in effects[: args.top]:
+            star = "*" if x.significant else " "
+            print(
+                f"{star} tick {x.tick:>3}  {x.actor:<6} {x.effect:+.3f}  "
+                f"[{x.low:+.3f}, {x.high:+.3f}]  did: {x.decision}"
             )
 
 
